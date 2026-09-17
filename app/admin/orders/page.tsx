@@ -1,5 +1,7 @@
-const page = () => {
-  return <div>page</div>;
+import Orders from "@/components/admin/Orders";
+
+const OrdersRouter = () => {
+  return <Orders />;
 };
 
-export default page;
+export default OrdersRouter;
