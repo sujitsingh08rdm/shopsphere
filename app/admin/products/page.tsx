@@ -1,7 +1,7 @@
-import React from "react";
+import Products from "@/components/admin/Products";
 
-const page = () => {
-  return <div>page</div>;
+const ProductsRouter = () => {
+  return <Products />;
 };
 
-export default page;
+export default ProductsRouter;
