@@ -49,7 +49,7 @@ export const PUT = async (req: NextRequest, context: SlugInterface) => {
 export const DELETE = async (req: NextRequest, context: SlugInterface) => {
   try {
     const { slug: id } = await context.params;
-    const product = await ProductModel.findByIdAndUpdate(id);
+    const product = await ProductModel.findByIdAndDelete(id);
 
     if (!product) {
       return res.json(
