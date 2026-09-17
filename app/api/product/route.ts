@@ -34,14 +34,14 @@ export const POST = async (req: NextRequest) => {
       discount: body.get("discount"),
       image: `/products/${fileName}`,
     };
-
+ 
     const product = await ProductModel.create(payload);
     return res.json(product);
   } catch (error) {
     return ServerCatchError(error);
   }
 };
-
+ 
 export const GET = async (req: NextRequest) => {
   try {
     const { searchParams } = new URL(req.url);
