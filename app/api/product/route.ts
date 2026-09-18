@@ -31,29 +31,49 @@ export const POST = async (req: NextRequest) => {
       title: body.get("title"),
       description: body.get("description"),
       price: body.get("price"),
+      quantity: body.get("quantity"),
       discount: body.get("discount"),
       image: `/products/${fileName}`,
     };
- 
+
     const product = await ProductModel.create(payload);
     return res.json(product);
   } catch (error) {
     return ServerCatchError(error);
   }
 };
- 
+
 export const GET = async (req: NextRequest) => {
   try {
     const { searchParams } = new URL(req.url);
     const slug = searchParams.get("slug");
+    const search = searchParams.get("search");
+    const page = Number(searchParams.get("page")) || 1;
+    const limit = Number(searchParams.get("limit")) || 16;
+    const skip = (page - 1) * limit;
+    const total = await ProductModel.countDocuments();
+
+    if (search) {
+      const product = await ProductModel.find({
+        title: RegExp(search, "i"),
+      })
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit);
+      return res.json({ total, data: product });
+    }
+
     if (slug) {
       const slugs = await ProductModel.distinct("slug");
 
       return res.json(slugs);
     }
 
-    const products = await ProductModel.find();
-    return res.json(products);
+    const products = await ProductModel.find()
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+    return res.json({ total, data: products });
   } catch (error) {
     return ServerCatchError(error);
   }
