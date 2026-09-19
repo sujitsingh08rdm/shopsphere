@@ -31,10 +31,7 @@ export const PUT = async (req: NextRequest) => {
       image: `/products/${fileName}`,
     };
 
-    const product = await ProductModel.updateOne(
-      { _id: id },
-      { $set: payload },
-    );
+    await ProductModel.updateOne({ _id: id }, { $set: payload });
     return res.json({ message: "Image Changed" });
   } catch (error) {
     return ServerCatchError(error);
