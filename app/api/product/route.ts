@@ -51,12 +51,13 @@ export const GET = async (req: NextRequest) => {
     const page = Number(searchParams.get("page")) || 1;
     const limit = Number(searchParams.get("limit")) || 16;
     const skip = (page - 1) * limit;
-    const total = await ProductModel.countDocuments();
 
     if (search) {
-      const product = await ProductModel.find({
+      const filter = {
         title: RegExp(search, "i"),
-      })
+      };
+      const total = await ProductModel.countDocuments(filter);
+      const product = await ProductModel.find(filter)
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit);
@@ -69,6 +70,7 @@ export const GET = async (req: NextRequest) => {
       return res.json(slugs);
     }
 
+    const total = await ProductModel.countDocuments();
     const products = await ProductModel.find()
       .sort({ createdAt: -1 })
       .skip(skip)
