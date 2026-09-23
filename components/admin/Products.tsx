@@ -32,6 +32,7 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 import useSWR, { mutate } from "swr";
 import { debounce } from "lodash";
+import priceCalculate from "@/lib/price-calculate";
 
 const Products = () => {
   const [productForm] = Form.useForm();
@@ -70,6 +71,7 @@ const Products = () => {
       }
       await axios.post("/api/product", formData);
       message.success("Product Added Successfully");
+      mutate(`/api/product?page=${page}&limit=${limit}`);
       handleClose();
     } catch (error) {
       ClientCatchError(error);
@@ -185,10 +187,11 @@ const Products = () => {
                   >
                     <Image
                       src={item.image || "/images/customer.jpg"}
-                      layout="fill"
+                      fill
                       alt={`product-${index}`}
-                      objectFit="cover"
-                      className="rounded-t-lg"
+                      className="rounded-t-lg object-cover"
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                      loading="eager"
                     />
                   </Popconfirm>
                 }
@@ -212,7 +215,7 @@ const Products = () => {
               title={item.title}
               description={
                 <div className="flex gap-2">
-                  <label>₹{item.price}</label>
+                  <label>₹{priceCalculate(item.price, item.discount)}</label>
                   <del>₹{item.price}</del>
                   <label>({item.discount})</label>
                 </div>

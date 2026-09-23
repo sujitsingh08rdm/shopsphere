@@ -23,6 +23,7 @@ import Link from "next/link";
 import ChildrenInterface from "@/interface/children.interface";
 import Logo from "../shared/Logo";
 import { usePathname } from "next/navigation";
+import { signOut } from "next-auth/react";
 
 const { Header, Content, Sider } = Layout;
 
@@ -41,8 +42,12 @@ const AdminLayout: FC<ChildrenInterface> = ({ children }) => {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
 
+  const logout = async () => {
+    signOut();
+  };
+
   const pathname = usePathname();
-  
+
   const menus = [
     {
       icon: <ShoppingOutlined />,
@@ -71,7 +76,11 @@ const AdminLayout: FC<ChildrenInterface> = ({ children }) => {
     items: [
       { icon: <ProfileOutlined />, label: "Sujit", key: "Fullname" },
       { icon: <SettingOutlined />, label: "Settings", key: "Settings" },
-      { icon: <LogoutOutlined />, label: "Logout", key: "Logout" },
+      {
+        icon: <LogoutOutlined />,
+        label: <a onClick={logout}>Logout</a>,
+        key: "Logout",
+      },
     ],
   };
 

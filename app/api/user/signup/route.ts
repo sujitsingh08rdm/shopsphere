@@ -1,9 +1,10 @@
+const db = `${process.env.DB_URL}/${process.env.DB_NAME}`;
+import mongoose from "mongoose";
+mongoose.connect(db);
+
 import ServerCatchError from "@/lib/server-catch-error";
 import { NextRequest, NextResponse as res } from "next/server";
 import UserModel from "@/models/user.model";
-
-import mongoose from "mongoose";
-mongoose.connect(process.env.DB!);
 
 export const POST = async (req: NextRequest) => {
   try {
