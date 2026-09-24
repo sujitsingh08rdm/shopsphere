@@ -1,6 +1,6 @@
 "use client";
 import Fetcher from "@/lib/Fetcher";
-import { Card, Empty, Result, Skeleton } from "antd";
+import { Card, Result, Skeleton } from "antd";
 import moment from "moment";
 import Image from "next/image";
 import useSWR from "swr";
