@@ -1,10 +1,14 @@
+const db = `${process.env.DB_URL}/${process.env.DB_NAME}`;
+import mongoose from "mongoose";
+mongoose.connect(db);
+
 import ServerCatchError from "@/lib/server-catch-error";
 import { NextRequest, NextResponse as res } from "next/server";
 
-import mongoose from "mongoose";
-mongoose.connect(process.env.DB!);
 import ProductModel from "@/models/product.model";
 import SlugInterface from "@/interface/slug.interface";
+import { getServerSession } from "next-auth";
+import { authOptions } from "../../auth/[...nextauth]/route";
 
 export const GET = async (req: NextRequest, context: SlugInterface) => {
   try {
@@ -26,6 +30,12 @@ export const GET = async (req: NextRequest, context: SlugInterface) => {
 
 export const PUT = async (req: NextRequest, context: SlugInterface) => {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session) return res.json({ message: "unauthorized" }, { status: 401 });
+
+    if (session.user.role !== "admin")
+      return res.json({ message: "unauthorized" }, { status: 401 });
+
     const { slug: id } = await context.params;
     const body = await req.json();
 
@@ -48,6 +58,12 @@ export const PUT = async (req: NextRequest, context: SlugInterface) => {
 
 export const DELETE = async (req: NextRequest, context: SlugInterface) => {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session) return res.json({ message: "unauthorized" }, { status: 401 });
+
+    if (session.user.role !== "admin")
+      return res.json({ message: "unauthorized" }, { status: 401 });
+
     const { slug: id } = await context.params;
     const product = await ProductModel.findByIdAndDelete(id);
 

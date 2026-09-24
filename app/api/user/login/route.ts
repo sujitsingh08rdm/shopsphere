@@ -1,18 +1,34 @@
+const db = `${process.env.DB_URL}/${process.env.DB_NAME}`;
+import mongoose from "mongoose";
+mongoose.connect(db);
+
 import ServerCatchError from "@/lib/server-catch-error";
 import { NextRequest, NextResponse as res } from "next/server";
 import UserModel from "@/models/user.model";
 import bcrypt from "bcrypt";
 
-import mongoose from "mongoose";
-mongoose.connect(process.env.DB!);
-
 export const POST = async (req: NextRequest) => {
   try {
-    const { email, password } = await req.json();
+    const body = await req.json();
+    const email = body.email;
+    const password = body.password;
+    const provider = body.provider;
+
     const user = await UserModel.findOne({ email });
+
+    const payload = {
+      id: user._id,
+      name: user.fullname,
+      email: user.email,
+      role: user.role,
+    };
 
     if (!user) {
       return res.json({ message: "user not found" }, { status: 404 });
+    }
+
+    if (provider === "google") {
+      return res.json(payload);
     }
 
     const isLogin = await bcrypt.compare(password, user.password);
@@ -21,7 +37,7 @@ export const POST = async (req: NextRequest) => {
       return res.json({ message: "Incorrect password" }, { status: 401 });
     }
 
-    return res.json({ message: "Login Success" });
+    return res.json(payload);
   } catch (error) {
     return ServerCatchError(error);
   }

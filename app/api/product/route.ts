@@ -1,16 +1,25 @@
+const db = `${process.env.DB_URL}/${process.env.DB_NAME}`;
+import mongoose from "mongoose";
+mongoose.connect(db);
+
 import ServerCatchError from "@/lib/server-catch-error";
 import { NextRequest, NextResponse as res } from "next/server";
 
-import mongoose from "mongoose";
 import ProductModel from "@/models/product.model";
 import { v4 as uuid } from "uuid";
 import path from "path";
 import fs from "fs";
-
-mongoose.connect(process.env.DB!);
+import { getServerSession } from "next-auth";
+import { authOptions } from "../auth/[...nextauth]/route";
 
 export const POST = async (req: NextRequest) => {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session) return res.json({ message: "unauthorized" }, { status: 401 });
+
+    if (session.user.role !== "admin")
+      return res.json({ message: "unauthorized" }, { status: 401 });
+
     const body = await req.formData();
     const file = body.get("image") as File | null;
 
