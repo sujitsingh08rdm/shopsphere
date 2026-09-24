@@ -1,6 +1,8 @@
 "use client";
-import { Avatar, Select, Skeleton, Table, Tooltip } from "antd";
+import Fetcher from "@/lib/Fetcher";
+import { Avatar, Result, Select, Skeleton, Table, Tag, Tooltip } from "antd";
 import moment from "moment";
+import useSWR from "swr";
 
 const data = [
   {
@@ -58,18 +60,28 @@ const data = [
 ];
 
 const Payments = () => {
+  const { data, error, isLoading } = useSWR("/api/payment", Fetcher);
+
+  if (isLoading) {
+    return <Skeleton active />;
+  }
+
+  if (error) {
+    return <Result status="error" title={error.message} />;
+  }
+
   const columns = [
     {
       title: "Customer",
       key: "customer",
-      render: () => (
+      render: (item: any) => (
         <div className="flex gap-2 items-center">
           <Avatar size="large" className="bg-orange-500!">
             M
           </Avatar>
           <div className="flex flex-col">
-            <h2 className="font-medium">Sujit Bhai</h2>
-            <label className="text-gray-500">sujit@gmail.com</label>
+            <h2 className="font-medium capitalize">{item.user.fullname}</h2>
+            <label className="text-gray-500">{item.user.email}</label>
           </div>
         </div>
       ),
@@ -77,39 +89,26 @@ const Payments = () => {
     {
       title: "Product",
       key: "product",
-      render: (item: any) => <label>{item.product.productName}</label>,
-    },
-    {
-      title: "Price",
-      key: "price",
-      render: (item: any) => <label>₹{item.product.price}</label>,
-    },
-    {
-      title: "Address",
-      key: "address",
-      render: () => {
-        const address =
-          "42 Maplewood Avenue Greenfield Heights, West Bengal 713200 India";
-
-        return (
-          <Tooltip title={address}>
-            <label className="block text-gray-500 max-w-50 truncate cursor-help">
-              {address}
-            </label>
-          </Tooltip>
-        );
-      },
-    },
-    {
-      title: "Status",
-      key: "status",
-      render: () => (
-        <Select placeholder="status" style={{ width: 120 }}>
-          <Select.Option value="processing">Processing</Select.Option>
-          <Select.Option value="dispatched">Dispatched</Select.Option>
-          <Select.Option value="returned">Returned</Select.Option>
-        </Select>
+      render: (item: any) => (
+        <label className="capitalize">{item.order.product.title}</label>
       ),
+    },
+    {
+      title: "Payment ID",
+      key: "payment",
+      render: (item: any) => (
+        <label className="capitalize">{item.paymentId}</label>
+      ),
+    },
+    {
+      title: "Amount",
+      key: "amount",
+      render: (item: any) => <label>₹{item.order.product.price}</label>,
+    },
+    {
+      title: "Vendor",
+      key: "vendor",
+      render: (item: any) => <Tag className="capitalize">{item.vendor}</Tag>,
     },
     {
       title: "Date",
@@ -123,7 +122,7 @@ const Payments = () => {
   return (
     <div className="space-y-8">
       <Skeleton active />
-      <Table columns={columns} dataSource={data} rowKey={"orderId"} />
+      <Table columns={columns} dataSource={data} rowKey={"_id"} />
     </div>
   );
 };
