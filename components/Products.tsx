@@ -1,14 +1,34 @@
 "use client";
 
 import DataInterface from "@/interface/data.interface";
+import ClientCatchError from "@/lib/client-catch-error";
 import { ShoppingCartOutlined } from "@ant-design/icons";
-import { Button, Card, Tag } from "antd";
+import { Button, Card, message, Tag } from "antd";
+import axios from "axios";
+import { getSession } from "next-auth/react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { FC, useEffect, useState } from "react";
+import { mutate } from "swr";
 
 const Products: FC<DataInterface> = ({ data }) => {
   const [isBrowser, setIsBrowser] = useState(false);
+  const router = useRouter();
+
+  const addToCart = async (id: string) => {
+    try {
+      const session = await getSession();
+      if (!session) {
+        return router.push("/login");
+      }
+      await axios.post("/api/cart", { product: id });
+      message.success("Product Added to Cart");
+      mutate("/api/cart?count=true");
+    } catch (error) {
+      ClientCatchError(error);
+    }
+  };
 
   useEffect(() => {
     setIsBrowser(true);
@@ -60,6 +80,7 @@ const Products: FC<DataInterface> = ({ data }) => {
               icon={<ShoppingCartOutlined />}
               type="primary"
               className="w-full!"
+              onClick={() => addToCart(item._id)}
             >
               Add To Cart
             </Button>
