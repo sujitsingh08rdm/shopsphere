@@ -6,12 +6,16 @@ import Logo from "./shared/Logo";
 import Link from "next/link";
 import {
   LogoutOutlined,
-  ProfileOutlined,
   SettingOutlined,
+  ShoppingCartOutlined,
   UserAddOutlined,
+  UserOutlined,
 } from "@ant-design/icons";
-import { Avatar, Button, Dropdown } from "antd";
+import { Avatar, Badge, Button, Dropdown, Skeleton, Tooltip } from "antd";
 import { usePathname } from "next/navigation";
+import { signOut, useSession } from "next-auth/react";
+import useSWR from "swr";
+import Fetcher from "@/lib/Fetcher";
 
 const menus = [
   {
@@ -22,29 +26,76 @@ const menus = [
     label: "Products",
     href: "/products",
   },
-  {
-    label: "Carts",
-    href: "/carts",
-  },
-  {
-    label: "Sign In",
-    href: "/login",
-  },
 ];
 
 const Layout: FC<ChildrenInterface> = ({ children }) => {
+  const { data, isLoading } = useSWR("/api/cart?count=true", Fetcher);
   const pathname = usePathname();
-  // const session = useSession();
+  const session = useSession();
 
-  // console.log(session);
+  const handleLogout = () => {
+    signOut();
+  };
 
-  const accountMenu = {
+  const userMenu = {
     items: [
-      { icon: <ProfileOutlined />, label: "Sujit", key: "Fullname" },
-      { icon: <SettingOutlined />, label: "Settings", key: "Settings" },
-      { icon: <LogoutOutlined />, label: "Logout", key: "Logout" },
+      {
+        icon: <UserOutlined />,
+        label: (
+          <Link className="capitalize" href={"/user/orders"}>
+            {session.data?.user.name}
+          </Link>
+        ),
+        key: "Fullname",
+      },
+      {
+        icon: <SettingOutlined />,
+        label: <Link href="/user/settings">Settings</Link>,
+        key: "Settings",
+      },
+      {
+        icon: <LogoutOutlined />,
+        label: <a onClick={handleLogout}>Logout</a>,
+        key: "Logout",
+      },
     ],
   };
+
+  const adminMenu = {
+    items: [
+      {
+        icon: <UserOutlined />,
+        label: (
+          <Link className="capitalize" href={"/admin/orders"}>
+            {session.data?.user.name}
+          </Link>
+        ),
+        key: "Fullname",
+      },
+      {
+        icon: <SettingOutlined />,
+        label: <Link href="/admin/settings">Settings</Link>,
+        key: "Settings",
+      },
+      {
+        icon: <LogoutOutlined />,
+        label: <a onClick={handleLogout}>Logout</a>,
+        key: "Logout",
+      },
+    ],
+  };
+
+  const getMenu = (role: string) => {
+    if (role === "user") {
+      return userMenu;
+    }
+    if (role === "admin") {
+      return adminMenu;
+    }
+
+    // signOut();
+  };
+
   const blacklist = ["/admin", "/login", "/signup", "/user", "/auth-failed"];
 
   const isBlacklist = blacklist.some((path) => pathname.startsWith(path));
@@ -53,6 +104,14 @@ const Layout: FC<ChildrenInterface> = ({ children }) => {
     return (
       <AntdRegistry>
         <div>{children}</div>
+      </AntdRegistry>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <AntdRegistry>
+        <Skeleton active />
       </AntdRegistry>
     );
   }
@@ -71,20 +130,46 @@ const Layout: FC<ChildrenInterface> = ({ children }) => {
               {item.label}
             </Link>
           ))}
+          {!session.data && (
+            <div className="space-x-2 animate__animated animate__fadeIn">
+              <Link href="/signup">
+                <Button
+                  size="large"
+                  className="text-black py-6 px-12 hover:text-white hover:bg-indigo-500"
+                  icon={<UserAddOutlined />}
+                >
+                  Login
+                </Button>
+              </Link>
+              <Link href="/signup">
+                <Button
+                  size="large"
+                  type="primary"
+                  className="bg-rose-500!"
+                  icon={<UserAddOutlined />}
+                >
+                  Sign Up
+                </Button>
+              </Link>
+            </div>
+          )}
         </div>
-        <Link href="/signup">
-          <Button
-            size="large"
-            type="primary"
-            className="bg-indigo-500!"
-            icon={<UserAddOutlined />}
-          >
-            Sign Up
-          </Button>
-        </Link>
-        <Dropdown menu={accountMenu}>
-          <Avatar size="large" src="/images/avt.jpg" />
-        </Dropdown>
+        {session.data && (
+          <div className="flex items-center gap-8 animate__animated animate__fadeIn">
+            {session.data.user.role === "user" && (
+              <Tooltip title="Your Carts">
+                <Link href="/user/carts">
+                  <Badge count={data && data.count}>
+                    <ShoppingCartOutlined className="text-3xl text-slate-400!" />
+                  </Badge>
+                </Link>
+              </Tooltip>
+            )}
+            <Dropdown menu={getMenu(session.data.user.role)}>
+              <Avatar size="large" src="/images/avt.jpg" />
+            </Dropdown>
+          </div>
+        )}
       </nav>
       <div className="w-9/12 mx-auto py-24">{children}</div>
       <footer className="bg-zinc-900 h-112.5 flex items-center justify-center text-white text-4xl">
