@@ -10,7 +10,11 @@ import Image from "next/image";
 import { useState } from "react";
 import useSWR, { mutate } from "swr";
 
+import Pay from "../shared/Pay";
+import { useRouter } from "next/navigation";
+
 const Carts = () => {
+  const router = useRouter();
   const { data, error, isLoading } = useSWR("/api/cart", Fetcher);
   const [loading, setLoading] = useState({
     state: false,
@@ -18,7 +22,7 @@ const Carts = () => {
     buttonIndex: null,
   });
 
-  const getTotalAmount = (data: any) => {
+  const getTotalAmount = () => {
     let sum = 0;
     for (let item of data) {
       const amount =
@@ -147,11 +151,11 @@ const Carts = () => {
 
       <div className="flex gap-4 justify-end items-center">
         <h2 className="text-2xl font-semibold">
-          Total Payble amount : ₹{getTotalAmount(data).toLocaleString()}
+          Total Payble amount : ₹{getTotalAmount().toLocaleString()}
         </h2>
-        <Button size="large" type="primary">
-          Pay Now
-        </Button>
+        <div>
+          <Pay product={data} onSuccess={() => router.push("/user/orders")} />
+        </div>
       </div>
     </div>
   );

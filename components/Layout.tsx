@@ -9,7 +9,7 @@ import {
   SettingOutlined,
   ShoppingCartOutlined,
   UserAddOutlined,
-  UserOutlined,
+  UserOutlined, 
 } from "@ant-design/icons";
 import { Avatar, Badge, Button, Dropdown, Skeleton, Tooltip } from "antd";
 import { usePathname } from "next/navigation";

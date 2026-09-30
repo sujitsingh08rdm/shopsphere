@@ -1,0 +1,65 @@
+{
+  "entity": "event",
+  "account_id": "acc_TLxOvK73HD2s2i",
+  "event": "payment.captured",
+  "contains": [
+    "payment"
+  ],
+  "payload": {
+    "payment": {
+      "entity": {
+        "id": "pay_Th1ZQWBGq4mcAm",
+        "entity": "payment",
+        "amount": 1219276,
+        "currency": "INR",
+        "status": "captured",
+        "order_id": "order_Th1Z4CBIidjK3s",
+        "invoice_id": null,
+        "international": false,
+        "method": "card",
+        "amount_refunded": 0,
+        "refund_status": null,
+        "captured": true,
+        "description": "Bulk Order",
+        "card_id": "card_Th1ZQgQ1T0gXXp",
+        "card": {
+          "id": "card_Th1ZQgQ1T0gXXp",
+          "entity": "card",
+          "name": "",
+          "last4": "5449",
+          "network": "MasterCard",
+          "type": "credit",
+          "issuer": "UTIB",
+          "international": false,
+          "emi": false,
+          "sub_type": "consumer",
+          "token_iin": "526731818"
+        },
+        "bank": null,
+        "wallet": null,
+        "vpa": null,
+        "email": "sujit@email.com",
+        "contact": "+917908928105",
+        "notes": {
+          "name": "Sujit",
+          "user": "6ab4081cb5232b828e8f7210",
+          "orders": "{\"products\":[\"68430421eb0b3a3998417e90\",\"6843042beb0b3a3998417e92\",\"6ab3e201f28dd7d0da1952a3\",\"6ab3e38ff28dd7d0da1952a5\",\"684303f6eb0b3a3998417e8a\"],\"prices\":[1000,1200,31,13,5000],\"discounts\":[10,10,12,2,20]}"
+        },
+        "fee": 28776,
+        "tax": 4390,
+        "error_code": null,
+        "error_description": null,
+        "error_source": null,
+        "error_step": null,
+        "error_reason": null,
+        "acquirer_data": {
+          "auth_code": "331309"
+        },
+        "created_at": 1790504069,
+        "reward": null,
+        "base_amount": 1219276
+      }
+    }
+  },
+  "created_at": 1790504079
+}
