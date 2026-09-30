@@ -1,0 +1,150 @@
+import { NextRequest, NextResponse as res } from "next/server";
+import fs from "fs";
+import ServerCatchError from "@/lib/server-catch-error";
+import crypto from "crypto";
+import OrderModel from "@/models/order.model";
+import PaymentModel from "@/models/payment.model";
+import moment from "moment";
+import path from "path";
+import CartModel from "@/models/cart.model";
+
+const root = process.cwd();
+
+interface CreateOrderInterface {
+  user: string;
+  products: string[];
+  discounts: string[];
+  prices: string[];
+}
+
+interface CreatePaymentInterface {
+  user: string;
+  paymentId: string;
+  order: string;
+  vendor?: "razorpay" | "stripe";
+}
+
+interface DeleteCartsInterface {
+  user: string;
+  products: string[];
+}
+
+const createLog = (error: unknown, service: string) => {
+  if (error instanceof Error) {
+    const dateTime = moment().format("YYYY-MM-DD_HH-mm-ss-A");
+    const filePath = path.join(
+      root,
+      "logs",
+      `${dateTime}-${service}-ERR-LOG.txt`,
+    );
+    fs.writeFileSync(filePath, error.message);
+    return false;
+  }
+};
+
+const createOrder = async (order: CreateOrderInterface) => {
+  try {
+    const { _id } = await OrderModel.create(order);
+    return _id;
+  } catch (error) {
+    return createLog(error, "ORDER");
+  }
+};
+
+const deleteCart = async (carts: DeleteCartsInterface) => {
+  try {
+    const query = carts.products.map((id) => ({
+      user: carts.user,
+      product: id,
+    }));
+    await CartModel.deleteMany({ $or: query });
+    return true;
+  } catch (error) {
+    return createLog(error, "DELETE-CART");
+  }
+};
+
+const createPayment = async (payment: CreatePaymentInterface) => {
+  try {
+    await PaymentModel.create(payment);
+    return true;
+  } catch (error) {
+    return createLog(error, "PAYMENT");
+  }
+};
+
+export const POST = async (req: NextRequest) => {
+  try {
+    const signature = req.headers.get("x-razorpay-signature");
+    if (!signature) {
+      return res.json({ message: "No signature" }, { status: 400 });
+    }
+    const body = await req.json();
+    const user = body.payload.payment.entity.notes.user;
+    const paymentId = body.payload.payment.entity.id;
+    const orders = JSON.parse(body.payload.payment.entity.notes.orders);
+
+    const mySignature = crypto
+      .createHmac("sha-256", process.env.RAZORPAY_WEBHOOK_SECRET!)
+      .update(JSON.stringify(body))
+      .digest("hex");
+
+    if (signature !== mySignature) {
+      return res.json({ message: "Invalid signature" }, { status: 400 });
+    }
+
+    if (
+      body.event === "payment.authorized" &&
+      process.env.NODE_ENV === "development"
+    ) {
+      const orderId = await createOrder({ user, ...orders });
+      if (!orderId) {
+        return res.json({ message: "Failed to Create Order" }, { status: 424 });
+      }
+
+      const payment = await createPayment({ user, order: orderId, paymentId });
+      if (!payment) {
+        return res.json(
+          { message: "failed to create payment" },
+          { status: 424 },
+        );
+      }
+
+      await deleteCart({ user, products: orders.products });
+      return res.json({ success: true });
+    }
+
+    if (body.event === "payment.captured") {
+      const existingPayment = await PaymentModel.findOne({ paymentId });
+
+      if (existingPayment) {
+        return res.json({
+          success: true,
+          message: "Webhook already processed",
+        });
+      }
+      const orderId = await createOrder({ user, ...orders });
+      if (!orderId) {
+        return res.json({ message: "Failed to Create Order" }, { status: 424 });
+      }
+
+      const payment = await createPayment({ user, order: orderId, paymentId });
+      if (!payment) {
+        return res.json(
+          { message: "failed to create payment" },
+          { status: 424 },
+        );
+      }
+
+      return res.json({ success: true });
+    }
+
+    if (body.event === "payment.failed") {
+      console.log("Payment failed");
+    }
+
+    return res.json({ success: true });
+  } catch (error) {
+    return ServerCatchError(error);
+  }
+};

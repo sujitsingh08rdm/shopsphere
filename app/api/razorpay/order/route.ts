@@ -4,8 +4,14 @@ mongoose.connect(db);
 
 import ServerCatchError from "@/lib/server-catch-error";
 import { NextRequest, NextResponse as res } from "next/server";
+import Razorpay from "razorpay";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../auth/[...nextauth]/route";
+
+const rzp = new Razorpay({
+  key_id: process.env.RAZORPAY_KEY_ID,
+  key_secret: process.env.RAZORPAY_KEY_SECRET,
+});
 
 export const POST = async (req: NextRequest) => {
   try {
@@ -18,6 +24,15 @@ export const POST = async (req: NextRequest) => {
     if (session.user.role !== "user") {
       return res.json({ message: "unauthorized" }, { status: 401 });
     }
+
+    const body = await req.json();
+    const payload = {
+      amount: Math.round(Number(body.amount) * 100),
+      currency: "INR",
+      receipt: `receipt_${Date.now()}`,
+    };
+    const order = await rzp.orders.create(payload);
+    return res.json(order);
   } catch (error) {
     return ServerCatchError(error);
   }

@@ -1,14 +1,21 @@
+"use client";
+
 import DataInterface from "@/interface/data.interface";
 import priceCalculate from "@/lib/price-calculate";
-import { Button, Card, Empty } from "antd";
+import { Card, Empty } from "antd";
 import Image from "next/image";
 import { FC } from "react";
+import Pay from "./shared/Pay";
+import { Router } from "next/router";
+import { useRouter } from "next/navigation";
 
 interface TitleInterface extends DataInterface {
   title: string;
 }
 
 const Slug: FC<TitleInterface> = ({ data, title }) => {
+  const router = useRouter();
+
   if (!data) {
     return <Empty />;
   }
@@ -32,12 +39,12 @@ const Slug: FC<TitleInterface> = ({ data, title }) => {
               <del className="text-rose-400">₹{data.price}</del>
               <h2 className="text-rose-400">({data.discount}% Discount)</h2>
             </div>
-            <Button
-              type="primary"
-              className="bg-indigo-500! font-medium! px-12! py-6! text-xl! hover:bg-indigo-600!"
-            >
-              Buy Now
-            </Button>
+            <div className="w-37.5">
+              <Pay
+                product={data}
+                onSuccess={() => router.push("/user/orders")}
+              />
+            </div>
           </div>
         </div>
       </Card>
