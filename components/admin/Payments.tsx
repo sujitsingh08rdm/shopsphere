@@ -70,14 +70,17 @@ const Payments = () => {
     return <Result status="error" title={error.message} />;
   }
 
+  console.log(data);
+
   const columns = [
     {
       title: "Customer",
       key: "customer",
+
       render: (item: any) => (
         <div className="flex gap-2 items-center">
-          <Avatar size="large" className="bg-orange-500!">
-            M
+          <Avatar size="large" className="bg-gray-700! capitalize">
+            {item.user.fullname[0]}
           </Avatar>
           <div className="flex flex-col">
             <h2 className="font-medium capitalize">{item.user.fullname}</h2>
@@ -87,42 +90,91 @@ const Payments = () => {
       ),
     },
     {
-      title: "Product",
-      key: "product",
-      render: (item: any) => (
-        <label className="capitalize">{item.order.product.title}</label>
-      ),
+      title: "Order Id",
+      key: "orderId",
+
+      dataIndex: "orderId",
     },
     {
-      title: "Payment ID",
-      key: "payment",
-      render: (item: any) => (
-        <label className="capitalize">{item.paymentId}</label>
-      ),
+      title: "Payment Id",
+      key: "paymentId",
+
+      dataIndex: "paymentId",
     },
     {
       title: "Amount",
       key: "amount",
-      render: (item: any) => <label>₹{item.order.product.price}</label>,
+
+      render: (item: any) => {
+        return <label>₹{item.amount.toLocaleString()}</label>;
+      },
     },
     {
-      title: "Vendor",
-      key: "vendor",
-      render: (item: any) => <Tag className="capitalize">{item.vendor}</Tag>,
+      title: "Fee",
+      key: "fee",
+
+      render: (item: any) => {
+        return item.fee ? <label>₹{item.fee / 100}</label> : 0;
+      },
+    },
+    {
+      title: "Tax",
+      key: "tax",
+
+      render: (item: any) => {
+        return item.tax ? <label>₹{item.tax / 100}</label> : 0;
+      },
     },
     {
       title: "Date",
       key: "date",
-      render: (item: any) => (
-        <label>{moment(item.createdAt).format("MMM DD, YYYY | hh:mm A")}</label>
-      ),
+
+      render: (item: any) => {
+        return moment(item.createdAt).format("MMM DD, YYYY hh:mm A");
+      },
+    },
+    {
+      title: "Method",
+      key: "method",
+
+      render: (item: any) => {
+        return (
+          <Tag className="capitalize" color="cyan">
+            {item.method}
+          </Tag>
+        );
+      },
+    },
+    {
+      title: "Status",
+      key: "status",
+
+      render: (item: any) => {
+        return (
+          <>
+            {item.status === "captured" ? (
+              <Tag className="uppercase" color="geekblue">
+                {item.status}
+              </Tag>
+            ) : (
+              <Tag className="uppercase" color="zinc">
+                {item.status}
+              </Tag>
+            )}
+          </>
+        );
+      },
     },
   ];
 
   return (
     <div className="space-y-8">
-      <Skeleton active />
-      <Table columns={columns} dataSource={data} rowKey={"_id"} />
+      <Table
+        columns={columns}
+        dataSource={data}
+        rowKey={"_id"}
+        scroll={{ x: "max-content" }}
+      />
     </div>
   );
 };

@@ -122,7 +122,11 @@ const Pay: FC<PayInterface> = ({
         return router.push("/user/settings");
       }
 
-      const payload = { amount: isArr ? getTotalAmount() : product.price };
+      const payload = {
+        amount: isArr
+          ? getTotalAmount()
+          : priceCalculate(product.price, product.discount),
+      };
 
       const { data } = await axios.post("/api/razorpay/order", payload);
 
