@@ -7,6 +7,13 @@ const userSchema = new Schema(
     email: { type: String, required: true },
     password: { type: String, required: true },
     role: { type: String },
+    address: {
+      street: { type: String, default: null },
+      city: { type: String, default: null },
+      state: { type: String, default: null },
+      country: { type: String, default: null },
+      pincode: { type: Number, default: null },
+    },
   },
   { timestamps: true },
 );

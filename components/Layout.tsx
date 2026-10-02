@@ -9,7 +9,7 @@ import {
   SettingOutlined,
   ShoppingCartOutlined,
   UserAddOutlined,
-  UserOutlined, 
+  UserOutlined,
 } from "@ant-design/icons";
 import { Avatar, Badge, Button, Dropdown, Skeleton, Tooltip } from "antd";
 import { usePathname } from "next/navigation";
@@ -97,7 +97,6 @@ const Layout: FC<ChildrenInterface> = ({ children }) => {
   };
 
   const blacklist = ["/admin", "/login", "/signup", "/user", "/auth-failed"];
-
   const isBlacklist = blacklist.some((path) => pathname.startsWith(path));
 
   if (isBlacklist) {
@@ -132,7 +131,7 @@ const Layout: FC<ChildrenInterface> = ({ children }) => {
           ))}
           {!session.data && (
             <div className="space-x-2 animate__animated animate__fadeIn">
-              <Link href="/signup">
+              <Link href="/login">
                 <Button
                   size="large"
                   className="text-black py-6 px-12 hover:text-white hover:bg-indigo-500"

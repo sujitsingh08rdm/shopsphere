@@ -12,13 +12,14 @@ import Sider from "antd/es/layout/Sider";
 import Link from "next/link";
 import { FC } from "react";
 import { usePathname } from "next/navigation";
-import { signOut } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 
 const UserLayout: FC<ChildrenInterface> = ({ children }) => {
   const pathname = usePathname();
   const logout = async () => {
     signOut();
   };
+  const session = useSession();
 
   const getBreadCrumbs = (pathname: string) => {
     const arr = pathname.split("/");
@@ -48,18 +49,25 @@ const UserLayout: FC<ChildrenInterface> = ({ children }) => {
     <Layout className="min-h-screen">
       <Sider width={300} className="border-r border-r-gray-200">
         <Menu theme="light" mode="inline" items={menus} className="h-full!" />
-        <div className="bg-gray-400 p-4 fixed bottom-0 left-0 w-75 flex items-center gap-2">
-          <Avatar size="large" className="text-xl! font-medium">
-            S
-          </Avatar>
-          <div className="flex flex-col">
-            <h2 className="text-base font-medium">Sujit Prasad</h2>
-            <p className="text-xs">example@gmail.com</p>
+
+        {session.data && (
+          <div className="bg-gray-400 p-4 fixed bottom-0 left-0 w-75 flex items-center justify-between gap-2">
+            <div className="flex gap-2 items-center">
+              <Avatar size="large" className="text-xl! font-medium">
+                S
+              </Avatar>
+              <div className="flex flex-col">
+                <h2 className="text-base font-medium capitalize">
+                  {session.data.user.name}
+                </h2>
+                <p className="text-xs">{session.data.user.email}</p>
+              </div>
+            </div>
+            <Button icon={<LogoutOutlined />} onClick={logout}>
+              Logout
+            </Button>
           </div>
-          <Button icon={<LogoutOutlined />} onClick={logout}>
-            Logout
-          </Button>
-        </div>
+        )}
       </Sider>
       <Layout>
         <Layout.Content>

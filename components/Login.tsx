@@ -8,12 +8,15 @@ import Link from "next/link";
 import { getSession, signIn } from "next-auth/react";
 import ClientCatchError from "@/lib/client-catch-error";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 const Login = () => {
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
 
   const login = async (value: any) => {
     try {
+      setLoading(true);
       const payload = { ...value, redirect: false };
       const res = await signIn("credentials", payload);
       const session = await getSession();
@@ -21,6 +24,7 @@ const Login = () => {
       if (!session) {
         throw new Error("Failed to login user");
       }
+
       if (session.user.role === "user") {
         return router.replace("/");
       }
@@ -29,6 +33,8 @@ const Login = () => {
       }
     } catch (error) {
       ClientCatchError(error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -84,6 +90,7 @@ const Login = () => {
               </Form.Item>
               <Form.Item>
                 <Button
+                  loading={loading}
                   htmlType="submit"
                   size="large"
                   type="primary"

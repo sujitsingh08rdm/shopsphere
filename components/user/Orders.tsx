@@ -1,64 +1,9 @@
 "use client";
 import Fetcher from "@/lib/Fetcher";
 import priceCalculate from "@/lib/price-calculate";
-import { Card, Empty, Image, Result, Skeleton, Tag } from "antd";
+import { Card, Divider, Empty, Image, Result, Skeleton, Tag } from "antd";
 import moment from "moment";
 import useSWR from "swr";
-
-// const data = [
-//   {
-//     orderId: "ORD1001",
-//     userId: "USR001",
-//     product: {
-//       productId: "P001",
-//       productName: "Wireless Mouse",
-//       quantity: 2,
-//       price: 29.99,
-//     },
-//     totalAmount: 59.98,
-//     status: "pending",
-//     createdAt: "2025-06-05T10:00:00Z",
-//   },
-//   {
-//     orderId: "ORD1002",
-//     userId: "USR002",
-//     product: {
-//       productId: "P003",
-//       productName: "Bluetooth Headphones",
-//       quantity: 1,
-//       price: 59.99,
-//     },
-//     totalAmount: 59.99,
-//     status: "success",
-//     createdAt: "2025-06-04T12:45:00Z",
-//   },
-//   {
-//     orderId: "ORD1003",
-//     userId: "USR003",
-//     product: {
-//       productId: "P002",
-//       productName: "USB-C Charger",
-//       quantity: 3,
-//       price: 29.99,
-//     },
-//     totalAmount: 89.97,
-//     status: "error",
-//     createdAt: "2025-06-03T14:30:00Z",
-//   },
-//   {
-//     orderId: "ORD1004",
-//     userId: "USR004",
-//     product: {
-//       productId: "P004",
-//       productName: "Laptop Stand",
-//       quantity: 1,
-//       price: 49.99,
-//     },
-//     totalAmount: 49.99,
-//     status: "warning",
-//     createdAt: "2025-06-02T16:00:00Z",
-//   },
-// ];
 
 const Orders = () => {
   const { data, isLoading, error } = useSWR("/api/order", Fetcher);
@@ -75,6 +20,25 @@ const Orders = () => {
     }
   };
 
+  const totalPrice = () => {
+    let sum = 0;
+    for (let i = 0; i < data.length; i++) {
+      const prices = data[i].prices;
+      const discounts = data[i].discounts;
+      const quantities = data[i].quantities;
+      for (let j = 0; j < prices.length; j++) {
+        const price = prices[j];
+        const discount = discounts[j];
+        const quantity = quantities[j];
+        const amount = priceCalculate(price, discount);
+        const total = amount * quantity;
+
+        sum += total;
+      }
+    }
+    return sum;
+  };
+
   if (isLoading) {
     return <Skeleton active />;
   }
@@ -83,7 +47,7 @@ const Orders = () => {
     return <Result status="error" title={error.message} />;
   }
 
-  if (!data) {
+  if (data.length === 0) {
     return <Empty />;
   }
 
@@ -106,8 +70,8 @@ const Orders = () => {
                   <div className="flex gap-4">
                     <Image
                       src={product.image}
-                      width={100}
-                      height={90}
+                      height={150}
+                      width={120}
                       alt={product.title}
                     />
                     <div>
@@ -129,15 +93,28 @@ const Orders = () => {
                           ({item.discounts[pIndex]}% Off)
                         </label>
                       </div>
-                      <Tag color={getStatusColor(item.status)}>
-                        {item.status.toUpperCase()}
-                      </Tag>
+                      <div className="flex gap-2">
+                        <Tag
+                          className="font-medium"
+                          color={getStatusColor(item.status)}
+                        >
+                          {item.status.toUpperCase()}
+                        </Tag>
+                        <Tag color="pink" className="font-medium">
+                          {item.quantities[pIndex]} PCS
+                        </Tag>
+                      </div>
                     </div>
                   </div>
                 </div>
               </Card>
             ))}
           </div>
+          <Divider />
+          <h2 className="text-xl font-bold">
+            Total Price: ₹{item.grossTotal}
+            {/* {totalPrice().toLocaleString()} */}
+          </h2>
         </Card>
       ))}
     </div>
