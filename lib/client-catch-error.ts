@@ -1,7 +1,12 @@
 import { message } from "antd";
 import { isAxiosError } from "axios";
 
-const ClientCatchError = (err: unknown) => {
+const ClientCatchError = (err: unknown, msg: string | null = null) => {
+  if (msg) {
+    message.error(msg);
+    return;
+  }
+
   if (isAxiosError(err)) {
     message.error(err.response?.data.message || err.message);
     return;

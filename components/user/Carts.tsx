@@ -12,6 +12,7 @@ import useSWR, { mutate } from "swr";
 
 import Pay from "../shared/Pay";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 const Carts = () => {
   const router = useRouter();
@@ -72,7 +73,17 @@ const Carts = () => {
   }
 
   if (data.length === 0) {
-    return <Empty />;
+    return (
+      <div>
+        <Empty />
+        <div className="flex items-center justify-center flex-col">
+          <p>Your cart is empty 😔</p>
+          <Link href="/">
+            <Button type="primary">Add Some 😃</Button>
+          </Link>
+        </div>
+      </div>
+    );
   }
 
   return (

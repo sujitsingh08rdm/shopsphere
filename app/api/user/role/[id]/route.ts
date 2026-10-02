@@ -5,10 +5,11 @@ import mongoose from "mongoose";
 mongoose.connect(db);
 
 import { NextRequest, NextResponse as res } from "next/server";
-import { authOptions } from "../auth/[...nextauth]/route";
 import { getServerSession } from "next-auth";
+import { authOptions } from "../../../auth/[...nextauth]/route";
+import IdInterface from "@/interface/id.interface";
 
-export const GET = async (req: NextRequest) => {
+export const PUT = async (req: NextRequest, context: IdInterface) => {
   try {
     const session = await getServerSession(authOptions);
     if (!session) {
@@ -18,14 +19,11 @@ export const GET = async (req: NextRequest) => {
       return res.json({ message: "unauthorized" }, { status: 401 });
     }
 
-    const id = session.user.id;
-    const user = await UserModel.find(
-      { _id: { $ne: id } },
-      { password: 0 },
-    ).sort({
-      createdAt: -1,
-    });
-    return res.json(user);
+    const { id } = await context.params;
+
+    const body = await req.json();
+    await UserModel.updateOne({ _id: id }, { role: body.role });
+    return res.json({ message: "Role Updated" });
   } catch (error) {
     return ServerCatchError(error);
   }

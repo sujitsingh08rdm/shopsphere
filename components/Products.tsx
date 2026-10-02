@@ -2,6 +2,7 @@
 
 import DataInterface from "@/interface/data.interface";
 import ClientCatchError from "@/lib/client-catch-error";
+import priceCalculate from "@/lib/price-calculate";
 import { ShoppingCartOutlined } from "@ant-design/icons";
 import { Button, Card, message, Tag } from "antd";
 import axios from "axios";
@@ -26,7 +27,10 @@ const Products: FC<DataInterface> = ({ data }) => {
       message.success("Product Added to Cart");
       mutate("/api/cart?count=true");
     } catch (error) {
-      ClientCatchError(error);
+      ClientCatchError(
+        error,
+        "You're an Admin, Please switch to User For Buying Product",
+      );
     }
   };
 
@@ -68,7 +72,7 @@ const Products: FC<DataInterface> = ({ data }) => {
             }
             description={
               <div className="flex gap-2">
-                <label>₹{item.price}</label>
+                <label>₹{priceCalculate(item.price, item.discount)}</label>
                 <del>₹{item.price}</del>
                 <label>({item.discount})</label>
               </div>
