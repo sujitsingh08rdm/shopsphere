@@ -15,6 +15,7 @@ interface CreateOrderInterface {
   products: string[];
   discounts: string[];
   prices: string[];
+  grossTotal: number;
 }
 
 interface CreatePaymentInterface {
@@ -47,6 +48,7 @@ const createOrder = async (order: CreateOrderInterface) => {
     const { _id } = await OrderModel.create(order);
     return _id;
   } catch (error) {
+    console.log(error);
     return createLog(error, "ORDER");
   }
 };
@@ -82,6 +84,7 @@ export const POST = async (req: NextRequest) => {
     const body = await req.json();
     const user = body.payload.payment.entity.notes.user;
     const paymentId = body.payload.payment.entity.id;
+    const grossTotal = body.payload.payment.entity.amount / 100;
     const orders = JSON.parse(body.payload.payment.entity.notes.orders);
 
     const mySignature = crypto
@@ -97,7 +100,7 @@ export const POST = async (req: NextRequest) => {
       body.event === "payment.authorized" &&
       process.env.NODE_ENV === "development"
     ) {
-      const orderId = await createOrder({ user, ...orders });
+      const orderId = await createOrder({ user, ...orders, grossTotal });
       if (!orderId) {
         return res.json({ message: "Failed to Create Order" }, { status: 424 });
       }
@@ -123,7 +126,7 @@ export const POST = async (req: NextRequest) => {
           message: "Webhook already processed",
         });
       }
-      const orderId = await createOrder({ user, ...orders });
+      const orderId = await createOrder({ user, ...orders, grossTotal });
       if (!orderId) {
         return res.json({ message: "Failed to Create Order" }, { status: 424 });
       }

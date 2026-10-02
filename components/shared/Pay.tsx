@@ -2,7 +2,7 @@
 
 import ClientCatchError from "@/lib/client-catch-error";
 import priceCalculate from "@/lib/price-calculate";
-import { Button, Empty, Modal, Result } from "antd";
+import { Button, Empty, message, Modal, Result } from "antd";
 import axios from "axios";
 
 import { useRazorpay, RazorpayOrderOptions } from "react-razorpay";
@@ -77,12 +77,14 @@ const Pay: FC<PayInterface> = ({
     const products = [];
     const prices = [];
     const discounts = [];
+    const quantities = [];
 
     if (!isArr) {
       return {
         products: [product._id],
         prices: [product.price],
         discounts: [product.discount],
+        quantities: [1],
       };
     }
 
@@ -90,12 +92,14 @@ const Pay: FC<PayInterface> = ({
       products.push(item.product._id);
       prices.push(item.product.price);
       discounts.push(item.product.discount);
+      quantities.push(item.quantity);
     }
 
     return {
       products,
       prices,
       discounts,
+      quantities,
     };
   };
 
@@ -110,6 +114,12 @@ const Pay: FC<PayInterface> = ({
     try {
       if (!session.data) {
         throw new Error("Session not initialized yet!");
+      }
+
+      if (!session.data.user.address.pincode) {
+        sessionStorage.setItem("message", "Please Update Your Address First..");
+        // message.info("Please add Address");
+        return router.push("/user/settings");
       }
 
       const payload = { amount: isArr ? getTotalAmount() : product.price };
@@ -191,10 +201,9 @@ const Pay: FC<PayInterface> = ({
           title="500"
           subTitle="Payment Failed, Please try after Sometime.."
           extra={
-            <Button
-              type="primary"
-              onClick={() => router.push("/user/orders")}
-            ></Button>
+            <Button type="primary" onClick={() => router.push("/user/carts")}>
+              Re-Try
+            </Button>
           }
         />
       </Modal>

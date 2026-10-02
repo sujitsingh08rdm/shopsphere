@@ -1,17 +1,23 @@
 "use client";
+
 import ClientCatchError from "@/lib/client-catch-error";
 import Fetcher from "@/lib/Fetcher";
+import priceCalculate from "@/lib/price-calculate";
 import {
   Avatar,
+  Card,
+  Empty,
   message,
   Result,
   Select,
   Skeleton,
   Table,
+  Tag,
   Tooltip,
 } from "antd";
 import axios from "axios";
 import moment from "moment";
+import Image from "next/image";
 import useSWR, { mutate } from "swr";
 
 // const data = [
@@ -82,6 +88,20 @@ const Orders = () => {
     }
   };
 
+  const getTotalSales = (item: any) => {
+    let sum = 0;
+
+    for (let i = 0; i < item.prices.length; i++) {
+      const price = item.prices[i];
+      const discount = item.discounts[i];
+      const quantity = item.quantities[i];
+      const total = priceCalculate(price, discount) * quantity;
+      sum += total;
+    }
+
+    return <label>₹ {Math.round(sum)}</label>;
+  };
+
   if (isLoading) {
     return <Skeleton active />;
   }
@@ -90,53 +110,63 @@ const Orders = () => {
     return <Result status="error" title={error.message} />;
   }
 
+  if (data.length === 0) {
+    return <Empty />;
+  }
+
   const columns = [
+    {
+      title: "Order ID",
+      key: "orderId",
+      dataIndex: "orderId",
+    },
     {
       title: "Customer",
       key: "customer",
       render: (item: any) => (
-        <div key={item.id} className="flex gap-2 items-center">
-          <Avatar size="large" className="bg-orange-500! capitalize">
-            {item.user.fullname[0]}
-          </Avatar>
+        <div className="flex gap-2 items-center">
+          <Avatar size={"large"}>{item.user.fullname[0].toUpperCase()}</Avatar>
           <div className="flex flex-col">
             <h2 className="font-medium capitalize">{item.user.fullname}</h2>
-            <label className="text-gray-500">{item.user.email}</label>
+            <label className="text-xs text-gray-500">{item.user.email}</label>
           </div>
         </div>
       ),
     },
     {
-      title: "Product",
-      key: "product",
-      render: (item: any) => (
-        <label className="capitalize">{item.product.title}</label>
-      ),
+      title: "Total Sales",
+      key: "total-sales",
+      render: getTotalSales,
     },
     {
-      title: "Price",
-      key: "price",
-      render: (item: any) => <label>₹{item.product.price}</label>,
-    },
-    {
-      title: "Discount",
-      key: "discount",
-      render: (item: any) => <label>{item.product.discount}%</label>,
+      title: "Total Products",
+      key: "total-products",
+      render: (item: any) => item.products.length,
     },
     {
       title: "Address",
       key: "address",
       render: (item: any) => {
-        const address =
-          item.user.address ||
-          "42 Maplewood Avenue Greenfield Heights, West Bengal 713200 India";
+        const address = item.user.address;
+
+        const fullAddress = address.pincode
+          ? `${address.street}, ${address.city}, ${address.state}, ${address.country}, ${address.pincode}`
+          : "";
 
         return (
-          <Tooltip title={address}>
-            <label className="block text-gray-500 max-w-50 truncate cursor-help">
-              {address}
-            </label>
-          </Tooltip>
+          <div className="capitalize">
+            {address.pincode ? (
+              <Tooltip title={fullAddress}>
+                <span>
+                  {fullAddress.length > 20
+                    ? `${fullAddress.slice(0, 20)}...`
+                    : fullAddress}
+                </span>
+              </Tooltip>
+            ) : (
+              "Not found"
+            )}
+          </div>
         );
       },
     },
@@ -145,10 +175,9 @@ const Orders = () => {
       key: "status",
       render: (item: any) => (
         <Select
-          placeholder="status"
-          style={{ width: 120 }}
+          style={{ width: 150 }}
           defaultValue={item.status}
-          onChange={(value) => changeStatus(value, item._id)}
+          onChange={(status) => changeStatus(status, item._id)}
         >
           <Select.Option value="processing">Processing</Select.Option>
           <Select.Option value="dispatched">Dispatched</Select.Option>
@@ -157,17 +186,78 @@ const Orders = () => {
       ),
     },
     {
-      title: "Date",
-      key: "date",
-      render: (item: any) => (
-        <label>{moment(item.createdAt).format("MMM DD, YYYY | hh:mm A")}</label>
-      ),
+      title: "Created",
+      key: "created",
+      render: (item: any) =>
+        moment(item.createdAt).format("MMM DD, YYYY hh:mm A"),
     },
   ];
 
+  const browserProducts = (item: any) => {
+    return (
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {item.products.map((product: any, pIndex: number) => (
+          <Card key={product._id} hoverable>
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center gap-4">
+                <Image
+                  src={product.image}
+                  alt={product.title}
+                  width={80}
+                  height={80}
+                  className="rounded-xl object-cover"
+                />
+                <div className="flex flex-col">
+                  <span className="text-lg font-bold">
+                    Price: ₹
+                    {priceCalculate(
+                      item.prices[pIndex],
+                      item.discounts[pIndex],
+                    )}
+                  </span>
+                  <span>
+                    Original Price: <del>₹{item.prices[pIndex]}</del>
+                  </span>
+                  <span>
+                    {" "}
+                    <Tag color="green">{item.discounts[pIndex]}% OFF</Tag>
+                  </span>
+                </div>
+              </div>
+              {/* Price + Discount */}
+              <div className="flex items-center justify-between">
+                {/* Product Name */}
+                <div>
+                  <h3 className="text-xl font-bold capitalize">
+                    {product.title}
+                  </h3>
+                  {/* Quantity */}
+                  <div className="text-sm text-gray-500">
+                    Quantity:{" "}
+                    <span className="font-medium">
+                      {item.quantities[pIndex]}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Card>
+        ))}
+      </div>
+    );
+  };
+
   return (
     <div className="space-y-8">
-      <Table columns={columns} dataSource={data} rowKey={"_id"} />
+      <Table
+        columns={columns}
+        dataSource={data}
+        rowKey={"_id"}
+        expandable={{
+          expandedRowRender: browserProducts,
+          rowExpandable: (record: any) => record.name !== "Not Expandable",
+        }}
+      />
     </div>
   );
 };

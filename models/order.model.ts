@@ -32,6 +32,16 @@ const orderSchema = new Schema(
         required: true,
       },
     ],
+    quantities: [
+      {
+        type: Number,
+        required: true,
+      },
+    ],
+    grossTotal: {
+      type: Number,
+      required: true,
+    },
     status: {
       type: String,
       default: "processing",
