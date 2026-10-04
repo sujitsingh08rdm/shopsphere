@@ -29,9 +29,12 @@ const menus = [
 ];
 
 const Layout: FC<ChildrenInterface> = ({ children }) => {
-  const { data, isLoading } = useSWR("/api/cart?count=true", Fetcher);
   const pathname = usePathname();
   const session = useSession();
+  const { data, isLoading } = useSWR(
+    session?.data?.user.role === "user" ? "/api/cart?count=true" : null,
+    Fetcher,
+  );
 
   const handleLogout = () => {
     signOut();

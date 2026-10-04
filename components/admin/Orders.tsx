@@ -257,6 +257,7 @@ const Orders = () => {
           expandedRowRender: browserProducts,
           rowExpandable: (record: any) => record.name !== "Not Expandable",
         }}
+        scroll={{ x: "max-content" }}
       />
     </div>
   );

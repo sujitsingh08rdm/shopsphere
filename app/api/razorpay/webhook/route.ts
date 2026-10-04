@@ -21,8 +21,14 @@ interface CreateOrderInterface {
 interface CreatePaymentInterface {
   user: string;
   paymentId: string;
-  order: string;
+  orderId: string;
   vendor?: "razorpay" | "stripe";
+  tax: number;
+  status: string;
+  currency: string;
+  amount: number;
+  fee: number;
+  method: string;
 }
 
 interface DeleteCartsInterface {
@@ -45,10 +51,9 @@ const createLog = (error: unknown, service: string) => {
 
 const createOrder = async (order: CreateOrderInterface) => {
   try {
-    const { _id } = await OrderModel.create(order);
-    return _id;
+    const { orderId } = await OrderModel.create(order);
+    return orderId;
   } catch (error) {
-    console.log(error);
     return createLog(error, "ORDER");
   }
 };
@@ -84,6 +89,8 @@ export const POST = async (req: NextRequest) => {
     const body = await req.json();
     const user = body.payload.payment.entity.notes.user;
     const paymentId = body.payload.payment.entity.id;
+    const { tax, fee, status, currency, amount, method } =
+      body.payload.payment.entity;
     const grossTotal = body.payload.payment.entity.amount / 100;
     const orders = JSON.parse(body.payload.payment.entity.notes.orders);
 
@@ -105,7 +112,17 @@ export const POST = async (req: NextRequest) => {
         return res.json({ message: "Failed to Create Order" }, { status: 424 });
       }
 
-      const payment = await createPayment({ user, order: orderId, paymentId });
+      const payment = await createPayment({
+        user,
+        orderId,
+        paymentId,
+        tax,
+        fee,
+        status,
+        currency,
+        amount: grossTotal,
+        method,
+      });
       if (!payment) {
         return res.json(
           { message: "failed to create payment" },
@@ -131,7 +148,17 @@ export const POST = async (req: NextRequest) => {
         return res.json({ message: "Failed to Create Order" }, { status: 424 });
       }
 
-      const payment = await createPayment({ user, order: orderId, paymentId });
+      const payment = await createPayment({
+        user,
+        orderId,
+        paymentId,
+        tax,
+        fee,
+        status,
+        currency,
+        amount: grossTotal,
+        method,
+      });
       if (!payment) {
         return res.json(
           { message: "failed to create payment" },

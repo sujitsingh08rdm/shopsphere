@@ -17,7 +17,12 @@ export const GET = async (req: NextRequest) => {
     if (session.user.role !== "admin") {
       return res.json({ message: "unauthorized" }, { status: 401 });
     }
-    const user = await UserModel.find({ role: "user" }, { password: 0 }).sort({
+
+    const id = session.user.id;
+    const user = await UserModel.find(
+      { _id: { $ne: id } },
+      { password: 0 },
+    ).sort({
       createdAt: -1,
     });
     return res.json(user);

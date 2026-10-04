@@ -2,6 +2,7 @@
 
 import DataInterface from "@/interface/data.interface";
 import ClientCatchError from "@/lib/client-catch-error";
+import priceCalculate from "@/lib/price-calculate";
 import { ShoppingCartOutlined } from "@ant-design/icons";
 import { Button, Card, message, Tag } from "antd";
 import axios from "axios";
@@ -26,7 +27,10 @@ const Products: FC<DataInterface> = ({ data }) => {
       message.success("Product Added to Cart");
       mutate("/api/cart?count=true");
     } catch (error) {
-      ClientCatchError(error);
+      ClientCatchError(
+        error,
+        "You're an Admin, Please switch to User For Buying Product",
+      );
     }
   };
 
@@ -38,62 +42,63 @@ const Products: FC<DataInterface> = ({ data }) => {
 
   return (
     <div className="grid grid-cols-4 gap-10">
-      {data.data.map((item: any, index: number) => (
-        <Card
-          key={index}
-          hoverable
-          cover={
-            <div className="relative w-full h-45">
-              {
-                <Image
-                  src={item.image || "/images/customer.jpg"}
-                  fill
-                  alt={item.title}
-                  className="rounded-t-lg object-cover"
-                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                  loading="eager"
-                />
-              }
-            </div>
-          }
-        >
-          <Card.Meta
-            title={
-              <Link
-                href={`/products/${item.title.toLowerCase().split(" ").join("-")}`}
-                className="text-inherit! hover:underline!"
-              >
-                {item.title}
-              </Link>
-            }
-            description={
-              <div className="flex gap-2">
-                <label>₹{item.price}</label>
-                <del>₹{item.price}</del>
-                <label>({item.discount})</label>
+      {data.data &&
+        data.data.map((item: any, index: number) => (
+          <Card
+            key={index}
+            hoverable
+            cover={
+              <div className="relative w-full h-45">
+                {
+                  <Image
+                    src={item.image || "/images/customer.jpg"}
+                    fill
+                    alt={item.title}
+                    className="rounded-t-lg object-cover"
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    loading="eager"
+                  />
+                }
               </div>
             }
-          />
-          <div className="mt-4 space-y-2">
-            <Button
-              key="cart"
-              icon={<ShoppingCartOutlined />}
-              type="primary"
-              className="w-full!"
-              onClick={() => addToCart(item._id)}
-            >
-              Add To Cart
-            </Button>
-            <Link
-              href={`/products/${item.title.toLowerCase().split(" ").join("-")}`}
-            >
-              <Button className="w-full!" key="buy" type="primary" danger>
-                Buy Now
+          >
+            <Card.Meta
+              title={
+                <Link
+                  href={`/products/${item.title.toLowerCase().split(" ").join("-")}`}
+                  className="text-inherit! hover:underline!"
+                >
+                  {item.title}
+                </Link>
+              }
+              description={
+                <div className="flex gap-2">
+                  <label>₹{priceCalculate(item.price, item.discount)}</label>
+                  <del>₹{item.price}</del>
+                  <label>({item.discount})</label>
+                </div>
+              }
+            />
+            <div className="mt-4 space-y-2">
+              <Button
+                key="cart"
+                icon={<ShoppingCartOutlined />}
+                type="primary"
+                className="w-full!"
+                onClick={() => addToCart(item._id)}
+              >
+                Add To Cart
               </Button>
-            </Link>
-          </div>
-        </Card>
-      ))}
+              <Link
+                href={`/products/${item.title.toLowerCase().split(" ").join("-")}`}
+              >
+                <Button className="w-full!" key="buy" type="primary" danger>
+                  Buy Now
+                </Button>
+              </Link>
+            </div>
+          </Card>
+        ))}
     </div>
   );
 };

@@ -44,7 +44,10 @@ const Products = () => {
     `/api/product?page=${page}&limit=${limit}`,
     Fetcher,
   );
+  console.log(data, "data");
+
   const [products, setProducts] = useState({ data: [], total: 0 });
+  console.log(products, "products");
 
   const onSearch = debounce(async (e: any) => {
     try {
@@ -174,58 +177,59 @@ const Products = () => {
       </div>
 
       <div className="grid grid-cols-4 gap-8">
-        {products.data.map((item: any, index: number) => (
-          <Card
-            key={index}
-            hoverable
-            cover={
-              <div className="relative w-full h-45">
-                {
-                  <Popconfirm
-                    title="Do You want to Change Image?"
-                    onConfirm={() => changeImage(item._id)}
-                  >
-                    <Image
-                      src={item.image || "/images/customer.jpg"}
-                      fill
-                      alt={`product-${index}`}
-                      className="rounded-t-lg object-cover"
-                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                      loading="eager"
-                    />
-                  </Popconfirm>
-                }
-              </div>
-            }
-            actions={[
-              <EditOutlined
-                key="edit"
-                className="text-green-400!"
-                onClick={() => editProduct(item)}
-              />,
-              <Popconfirm
-                title="Do You Want To Delete Product?"
-                onConfirm={() => deleteProduct(item._id)}
-              >
-                <DeleteOutlined key="delete" className="text-rose-400!" />
-              </Popconfirm>,
-            ]}
-          >
-            <Card.Meta
-              title={item.title}
-              description={
-                <div className="flex gap-2">
-                  <label>₹{priceCalculate(item.price, item.discount)}</label>
-                  <del>₹{item.price}</del>
-                  <label>({item.discount})</label>
+        {products.data &&
+          products.data.map((item: any, index: number) => (
+            <Card
+              key={index}
+              hoverable
+              cover={
+                <div className="relative w-full h-45">
+                  {
+                    <Popconfirm
+                      title="Do You want to Change Image?"
+                      onConfirm={() => changeImage(item._id)}
+                    >
+                      <Image
+                        src={item.image || "/images/customer.jpg"}
+                        fill
+                        alt={`product-${index}`}
+                        className="rounded-t-lg object-cover"
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                        loading="eager"
+                      />
+                    </Popconfirm>
+                  }
                 </div>
               }
-            />
-            <Tag className="mt-4!" color="cyan">
-              {item.quantity} PCS
-            </Tag>
-          </Card>
-        ))}
+              actions={[
+                <EditOutlined
+                  key="edit"
+                  className="text-green-400!"
+                  onClick={() => editProduct(item)}
+                />,
+                <Popconfirm
+                  title="Do You Want To Delete Product?"
+                  onConfirm={() => deleteProduct(item._id)}
+                >
+                  <DeleteOutlined key="delete" className="text-rose-400!" />
+                </Popconfirm>,
+              ]}
+            >
+              <Card.Meta
+                title={item.title}
+                description={
+                  <div className="flex gap-2">
+                    <label>₹{priceCalculate(item.price, item.discount)}</label>
+                    <del>₹{item.price}</del>
+                    <label>({item.discount})</label>
+                  </div>
+                }
+              />
+              <Tag className="mt-4!" color="cyan">
+                {item.quantity} PCS
+              </Tag>
+            </Card>
+          ))}
       </div>
       <div className="flex justify-end w-full">
         <Pagination
